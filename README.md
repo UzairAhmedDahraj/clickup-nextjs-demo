@@ -1,7 +1,7 @@
 # ClickUp-Style Task Management System
 
 A full-featured task management application with MongoDB Atlas and Cloudinary integration.
-## Ahmed
+
 ## Quick Start
 
 1. **Install dependencies:**
