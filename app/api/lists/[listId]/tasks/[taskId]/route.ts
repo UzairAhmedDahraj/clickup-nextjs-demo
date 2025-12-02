@@ -11,14 +11,15 @@ const DEFAULT_USER_ID = process.env.DEFAULT_USER_ID || 'default-user';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { listId: string; taskId: string } }
+  { params }: { params: Promise<{ listId: string; taskId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId, taskId } = await params;
 
     const task = await Task.findOne({
-      _id: params.taskId,
-      listId: params.listId,
+      _id: taskId,
+      listId,
     })
       .populate('assignees', 'name email avatar')
       .populate('createdBy', 'name email avatar')
@@ -55,10 +56,11 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { listId: string; taskId: string } }
+  { params }: { params: Promise<{ listId: string; taskId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId, taskId } = await params;
 
     const body = await request.json();
     const {
@@ -96,7 +98,7 @@ export async function PUT(
     if (completedAt !== undefined) updateData.completedAt = completedAt ? new Date(completedAt) : null;
 
     const task = await Task.findOneAndUpdate(
-      { _id: params.taskId, listId: params.listId },
+      { _id: taskId, listId },
       updateData,
       { new: true, runValidators: true }
     )
@@ -134,14 +136,15 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { listId: string; taskId: string } }
+  { params }: { params: Promise<{ listId: string; taskId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId, taskId } = await params;
 
     const task = await Task.findOneAndDelete({
-      _id: params.taskId,
-      listId: params.listId,
+      _id: taskId,
+      listId,
     });
 
     if (!task) {

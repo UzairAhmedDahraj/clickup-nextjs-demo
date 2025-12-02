@@ -13,12 +13,13 @@ const DEFAULT_USER_ID = process.env.DEFAULT_USER_ID || 'default-user';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { taskId: string } }
+  { params }: { params: Promise<{ taskId: string }> }
 ) {
   try {
     await dbConnect();
+    const { taskId } = await params;
 
-    const attachments = await Attachment.find({ taskId: params.taskId })
+    const attachments = await Attachment.find({ taskId })
       .sort({ createdAt: -1 })
       .populate('uploadedBy', 'name email avatar')
       .lean();
@@ -45,10 +46,11 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { taskId: string } }
+  { params }: { params: Promise<{ taskId: string }> }
 ) {
   try {
     await dbConnect();
+    const { taskId } = await params;
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -87,12 +89,12 @@ export async function POST(
     const { url, publicId } = await uploadToCloudinary(
       buffer,
       file.name,
-      `clickup-demo/tasks/${params.taskId}`
+      `clickup-demo/tasks/${taskId}`
     );
 
     // Save attachment record to database
     const attachment = await Attachment.create({
-      taskId: params.taskId,
+      taskId,
       workspaceId: DEFAULT_WORKSPACE_ID,
       name: file.name,
       originalName: file.name,

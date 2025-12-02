@@ -10,14 +10,15 @@ import { ApiResponse } from '@/types';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { taskId: string; attachmentId: string } }
+  { params }: { params: Promise<{ taskId: string; attachmentId: string }> }
 ) {
   try {
     await dbConnect();
+    const { taskId, attachmentId } = await params;
 
     const attachment = await Attachment.findOne({
-      _id: params.attachmentId,
-      taskId: params.taskId,
+      _id: attachmentId,
+      taskId,
     })
       .populate('uploadedBy', 'name email avatar')
       .lean();
@@ -52,14 +53,15 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { taskId: string; attachmentId: string } }
+  { params }: { params: Promise<{ taskId: string; attachmentId: string }> }
 ) {
   try {
     await dbConnect();
+    const { taskId, attachmentId } = await params;
 
     const attachment = await Attachment.findOne({
-      _id: params.attachmentId,
-      taskId: params.taskId,
+      _id: attachmentId,
+      taskId,
     });
 
     if (!attachment) {

@@ -12,15 +12,16 @@ const DEFAULT_USER_ID = process.env.DEFAULT_USER_ID || 'default-user';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { listId: string } }
+  { params }: { params: Promise<{ listId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId } = await params;
 
     const { searchParams } = new URL(request.url);
     
     // Build query
-    const query: any = { listId: params.listId };
+    const query: any = { listId };
 
     // Filtering
     const status = searchParams.get('status');
@@ -83,10 +84,11 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { listId: string } }
+  { params }: { params: Promise<{ listId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId } = await params;
 
     const body = await request.json();
     const {
@@ -108,7 +110,7 @@ export async function POST(
     }
 
     // Get the highest order number
-    const lastTask = await Task.findOne({ listId: params.listId })
+    const lastTask = await Task.findOne({ listId })
       .sort({ order: -1 })
       .select('order')
       .lean();
@@ -116,7 +118,7 @@ export async function POST(
     const newOrder = lastTask ? lastTask.order + 1 : 0;
 
     const task = await Task.create({
-      listId: params.listId,
+      listId,
       workspaceId: DEFAULT_WORKSPACE_ID,
       name: name.trim(),
       description: description?.trim(),

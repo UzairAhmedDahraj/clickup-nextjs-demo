@@ -9,14 +9,15 @@ import { ApiResponse } from '@/types';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { listId: string; fieldId: string } }
+  { params }: { params: Promise<{ listId: string; fieldId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId, fieldId } = await params;
 
     const field = await CustomFieldDefinition.findOne({
-      _id: params.fieldId,
-      listId: params.listId,
+      _id: fieldId,
+      listId,
     }).lean();
 
     if (!field) {
@@ -49,10 +50,11 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { listId: string; fieldId: string } }
+  { params }: { params: Promise<{ listId: string; fieldId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId, fieldId } = await params;
 
     const body = await request.json();
     const { name, type, required, options, defaultValue, settings, order } = body;
@@ -78,7 +80,7 @@ export async function PUT(
     }
 
     const field = await CustomFieldDefinition.findOneAndUpdate(
-      { _id: params.fieldId, listId: params.listId },
+      { _id: fieldId, listId },
       updateData,
       { new: true, runValidators: true }
     ).lean();
@@ -114,14 +116,15 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { listId: string; fieldId: string } }
+  { params }: { params: Promise<{ listId: string; fieldId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId, fieldId } = await params;
 
     const field = await CustomFieldDefinition.findOneAndDelete({
-      _id: params.fieldId,
-      listId: params.listId,
+      _id: fieldId,
+      listId,
     });
 
     if (!field) {

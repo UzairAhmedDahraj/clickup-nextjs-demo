@@ -12,12 +12,13 @@ const DEFAULT_USER_ID = process.env.DEFAULT_USER_ID || 'default-user';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { listId: string } }
+  { params }: { params: Promise<{ listId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId } = await params;
 
-    const fields = await CustomFieldDefinition.find({ listId: params.listId })
+    const fields = await CustomFieldDefinition.find({ listId })
       .sort({ order: 1, createdAt: 1 })
       .lean();
 
@@ -43,10 +44,11 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { listId: string } }
+  { params }: { params: Promise<{ listId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId } = await params;
 
     const body = await request.json();
     const { name, type, required, options, defaultValue, settings } = body;
@@ -77,7 +79,7 @@ export async function POST(
     }
 
     // Get the highest order number
-    const lastField = await CustomFieldDefinition.findOne({ listId: params.listId })
+    const lastField = await CustomFieldDefinition.findOne({ listId })
       .sort({ order: -1 })
       .select('order')
       .lean();
@@ -85,7 +87,7 @@ export async function POST(
     const newOrder = lastField ? lastField.order + 1 : 0;
 
     const field = await CustomFieldDefinition.create({
-      listId: params.listId,
+      listId,
       workspaceId: DEFAULT_WORKSPACE_ID,
       name: name.trim(),
       type,

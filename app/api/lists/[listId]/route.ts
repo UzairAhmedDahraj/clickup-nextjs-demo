@@ -9,12 +9,13 @@ import { ApiResponse } from '@/types';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { listId: string } }
+  { params }: { params: Promise<{ listId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId } = await params;
 
-    const list = await List.findById(params.listId).lean();
+    const list = await List.findById(listId).lean();
 
     if (!list) {
       const response: ApiResponse = {
@@ -46,10 +47,11 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { listId: string } }
+  { params }: { params: Promise<{ listId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId } = await params;
 
     const body = await request.json();
     const { name, description, color, icon, order } = body;
@@ -61,7 +63,7 @@ export async function PUT(
     if (icon !== undefined) updateData.icon = icon;
     if (order !== undefined) updateData.order = order;
 
-    const list = await List.findByIdAndUpdate(params.listId, updateData, {
+    const list = await List.findByIdAndUpdate(listId, updateData, {
       new: true,
       runValidators: true,
     }).lean();
@@ -97,12 +99,13 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { listId: string } }
+  { params }: { params: Promise<{ listId: string }> }
 ) {
   try {
     await dbConnect();
+    const { listId } = await params;
 
-    const list = await List.findById(params.listId);
+    const list = await List.findById(listId);
 
     if (!list) {
       const response: ApiResponse = {
@@ -113,10 +116,10 @@ export async function DELETE(
     }
 
     // Delete all associated tasks
-    await Task.deleteMany({ listId: params.listId });
+    await Task.deleteMany({ listId });
 
     // Delete all associated custom field definitions
-    await CustomFieldDefinition.deleteMany({ listId: params.listId });
+    await CustomFieldDefinition.deleteMany({ listId });
 
     // Delete the list
     await list.deleteOne();
